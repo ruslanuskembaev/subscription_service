@@ -17,6 +17,8 @@ import (
 	"subscription_service/internal/service"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.uber.org/zap"
 
 	_ "subscription_service/docs" // swagger docs
@@ -137,6 +139,9 @@ func setupRouter(logger *zap.Logger, subscriptionHandler *handler.SubscriptionHa
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
+
+	// Swagger documentation
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// API routes
 	api := router.Group("/")
