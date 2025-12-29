@@ -28,7 +28,7 @@ func (r *SubscriptionRepository) Create(sub *models.Subscription) error {
 		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id
 	`
-	
+
 	err := r.db.QueryRow(
 		query,
 		sub.ServiceName,
@@ -39,11 +39,11 @@ func (r *SubscriptionRepository) Create(sub *models.Subscription) error {
 		sub.CreatedAt,
 		sub.UpdatedAt,
 	).Scan(&sub.ID)
-	
+
 	if err != nil {
 		return fmt.Errorf("failed to create subscription: %w", err)
 	}
-	
+
 	return nil
 }
 
@@ -55,7 +55,7 @@ func (r *SubscriptionRepository) GetByID(id uuid.UUID) (*models.Subscription, er
 		FROM subscriptions
 		WHERE id = $1
 	`
-	
+
 	err := r.db.QueryRow(query, id).Scan(
 		&sub.ID,
 		&sub.ServiceName,
@@ -66,14 +66,14 @@ func (r *SubscriptionRepository) GetByID(id uuid.UUID) (*models.Subscription, er
 		&sub.CreatedAt,
 		&sub.UpdatedAt,
 	)
-	
+
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("subscription not found")
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to get subscription: %w", err)
 	}
-	
+
 	return sub, nil
 }
 
@@ -84,7 +84,7 @@ func (r *SubscriptionRepository) Update(id uuid.UUID, sub *models.Subscription) 
 		SET service_name = $1, price = $2, start_date = $3, end_date = $4, updated_at = $5
 		WHERE id = $6
 	`
-	
+
 	result, err := r.db.Exec(
 		query,
 		sub.ServiceName,
@@ -94,41 +94,41 @@ func (r *SubscriptionRepository) Update(id uuid.UUID, sub *models.Subscription) 
 		sub.UpdatedAt,
 		id,
 	)
-	
+
 	if err != nil {
 		return fmt.Errorf("failed to update subscription: %w", err)
 	}
-	
+
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return fmt.Errorf("failed to get rows affected: %w", err)
 	}
-	
+
 	if rowsAffected == 0 {
 		return fmt.Errorf("subscription not found")
 	}
-	
+
 	return nil
 }
 
 // Delete deletes subscription by ID
 func (r *SubscriptionRepository) Delete(id uuid.UUID) error {
 	query := `DELETE FROM subscriptions WHERE id = $1`
-	
+
 	result, err := r.db.Exec(query, id)
 	if err != nil {
 		return fmt.Errorf("failed to delete subscription: %w", err)
 	}
-	
+
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return fmt.Errorf("failed to get rows affected: %w", err)
 	}
-	
+
 	if rowsAffected == 0 {
 		return fmt.Errorf("subscription not found")
 	}
-	
+
 	return nil
 }
 
@@ -140,13 +140,13 @@ func (r *SubscriptionRepository) List(limit, offset int) ([]*models.Subscription
 		ORDER BY created_at DESC
 		LIMIT $1 OFFSET $2
 	`
-	
+
 	rows, err := r.db.Query(query, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list subscriptions: %w", err)
 	}
 	defer rows.Close()
-	
+
 	var subscriptions []*models.Subscription
 	for rows.Next() {
 		sub := &models.Subscription{}
@@ -165,11 +165,11 @@ func (r *SubscriptionRepository) List(limit, offset int) ([]*models.Subscription
 		}
 		subscriptions = append(subscriptions, sub)
 	}
-	
+
 	if err = rows.Err(); err != nil {
 		return nil, fmt.Errorf("failed to iterate subscriptions: %w", err)
 	}
-	
+
 	return subscriptions, nil
 }
 
@@ -182,24 +182,23 @@ func (r *SubscriptionRepository) CalculateTotalCost(startDate, endDate time.Time
 	`
 	args := []interface{}{endDate, startDate}
 	argIndex := 3
-	
+
 	if userID != nil {
 		query += fmt.Sprintf(" AND user_id = $%d", argIndex)
 		args = append(args, *userID)
 		argIndex++
 	}
-	
+
 	if serviceName != nil {
 		query += fmt.Sprintf(" AND service_name = $%d", argIndex)
 		args = append(args, *serviceName)
 	}
-	
+
 	var totalCost int
 	err := r.db.QueryRow(query, args...).Scan(&totalCost)
 	if err != nil {
 		return 0, fmt.Errorf("failed to calculate total cost: %w", err)
 	}
-	
+
 	return totalCost, nil
 }
-

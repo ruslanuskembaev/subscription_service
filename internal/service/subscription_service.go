@@ -151,4 +151,3 @@ func parseMonthYear(dateStr string) (time.Time, error) {
 	date = time.Date(date.Year(), date.Month(), 1, 0, 0, 0, 0, time.UTC)
 	return date, nil
 }
-

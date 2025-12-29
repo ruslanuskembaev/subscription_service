@@ -197,4 +197,3 @@ func (h *SubscriptionHandler) CalculateTotalCost(c *gin.Context) {
 
 	c.JSON(http.StatusOK, result)
 }
-

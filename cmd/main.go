@@ -188,4 +188,3 @@ func runMigrations(dsn string) error {
 	_, err = db.Exec(migrationSQL)
 	return err
 }
-

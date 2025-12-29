@@ -30,4 +30,3 @@ func NewDB(dsn string) (*DB, error) {
 func (db *DB) Close() error {
 	return db.DB.Close()
 }
-
