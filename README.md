@@ -42,7 +42,10 @@ docker-compose up -d
 
 This will start:
 - PostgreSQL database on port 5432
+- Database migrations (automatically run on startup)
 - Subscription service on port 8080
+
+Migrations are run automatically via the `migrate` service before the app starts.
 
 ## Running Locally
 
@@ -56,8 +59,15 @@ docker run -d --name postgres \
   postgres:15-alpine
 ```
 
-2. Run migrations (automatically on startup):
-   The service will automatically create the database schema on startup.
+2. Run migrations:
+   ```bash
+   migrate -path migrations -database "postgres://postgres:postgres@localhost:5432/subscription_db?sslmode=disable" up
+   ```
+   
+   Or install migrate first:
+   ```bash
+   go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+   ```
 
 3. Build and run the service:
 ```bash

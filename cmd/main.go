@@ -13,7 +13,6 @@ import (
 	"subscription_service/internal/config"
 	"subscription_service/internal/database"
 	"subscription_service/internal/handler"
-	"subscription_service/internal/models"
 	"subscription_service/internal/repository"
 	"subscription_service/internal/service"
 
@@ -66,11 +65,8 @@ func main() {
 
 	logger.Info("Connected to database")
 
-	// Run migrations using GORM AutoMigrate
-	if err := runMigrations(db); err != nil {
-		logger.Fatal("Failed to run migrations", zap.Error(err))
-	}
-	logger.Info("Migrations completed")
+	// Migrations are run separately via golang-migrate (see migrations/README.md)
+	// In docker-compose, migrations run automatically before app starts
 
 	// Initialize dependencies
 	subscriptionRepo := repository.NewSubscriptionRepository(db)
@@ -158,21 +154,3 @@ func setupRouter(logger *zap.Logger, subscriptionHandler *handler.SubscriptionHa
 	return router
 }
 
-func runMigrations(db *database.DB) error {
-	// Create UUID extension
-	sqlDB, err := db.DB.DB()
-	if err != nil {
-		return err
-	}
-	_, err = sqlDB.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"")
-	if err != nil {
-		return err
-	}
-
-	// AutoMigrate creates tables and indexes based on model tags
-	if err := db.AutoMigrate(&models.Subscription{}); err != nil {
-		return fmt.Errorf("failed to auto migrate: %w", err)
-	}
-
-	return nil
-}

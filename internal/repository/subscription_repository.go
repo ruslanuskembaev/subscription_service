@@ -114,7 +114,7 @@ func (r *SubscriptionRepository) CalculateTotalCost(startDate, endDate time.Time
 		// Normalize to first day of month
 		subStart := time.Date(sub.StartDate.Year(), sub.StartDate.Month(), 1, 0, 0, 0, 0, sub.StartDate.Location())
 		reqStart := time.Date(startDate.Year(), startDate.Month(), 1, 0, 0, 0, 0, startDate.Location())
-		
+
 		intersectionStart := subStart
 		if reqStart.After(intersectionStart) {
 			intersectionStart = reqStart
@@ -129,7 +129,7 @@ func (r *SubscriptionRepository) CalculateTotalCost(startDate, endDate time.Time
 				intersectionEnd = subEndLastDay
 			}
 		}
-		
+
 		// Normalize intersectionEnd to first day of month for calculation
 		intersectionEndFirstDay := time.Date(intersectionEnd.Year(), intersectionEnd.Month(), 1, 0, 0, 0, 0, intersectionEnd.Location())
 
