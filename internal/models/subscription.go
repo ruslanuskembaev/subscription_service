@@ -8,14 +8,14 @@ import (
 
 // Subscription represents a user subscription record
 type Subscription struct {
-	ID          uuid.UUID  `json:"id" db:"id"`
-	ServiceName string     `json:"service_name" db:"service_name"`
-	Price       int        `json:"price" db:"price"` // price in rubles
-	UserID      uuid.UUID  `json:"user_id" db:"user_id"`
-	StartDate   time.Time  `json:"start_date" db:"start_date"`
-	EndDate     *time.Time `json:"end_date,omitempty" db:"end_date"`
-	CreatedAt   time.Time  `json:"created_at" db:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at" db:"updated_at"`
+	ID          uuid.UUID  `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
+	ServiceName string     `gorm:"type:varchar(255);not null" json:"service_name"`
+	Price       int        `gorm:"type:integer;not null;check:price > 0" json:"price"` // price in rubles
+	UserID      uuid.UUID  `gorm:"type:uuid;not null;index" json:"user_id"`
+	StartDate   time.Time  `gorm:"type:date;not null;index" json:"start_date"`
+	EndDate     *time.Time `gorm:"type:date;index" json:"end_date,omitempty"`
+	CreatedAt   time.Time  `gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP" json:"created_at"`
+	UpdatedAt   time.Time  `gorm:"type:timestamp;not null;default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
 
 // CreateSubscriptionRequest represents request body for creating subscription

@@ -120,7 +120,7 @@ func (s *SubscriptionService) CalculateTotalCost(req *models.TotalCostRequest) (
 		return nil, fmt.Errorf("invalid end_date format: %w", err)
 	}
 
-	// Set end date to last day of the month
+	// Set end date to last day of the month for proper month calculation
 	endDate = time.Date(endDate.Year(), endDate.Month()+1, 0, 23, 59, 59, 999999999, endDate.Location())
 
 	var userID *uuid.UUID

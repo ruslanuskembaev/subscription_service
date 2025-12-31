@@ -1,25 +1,30 @@
 package database
 
 import (
-	"database/sql"
 	"fmt"
 
-	_ "github.com/lib/pq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-// DB wraps database connection
+// DB wraps GORM database connection
 type DB struct {
-	*sql.DB
+	*gorm.DB
 }
 
-// NewDB creates new database connection
+// NewDB creates new database connection using GORM
 func NewDB(dsn string) (*DB, error) {
-	db, err := sql.Open("postgres", dsn)
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
-	if err := db.Ping(); err != nil {
+	sqlDB, err := db.DB()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get sql.DB: %w", err)
+	}
+
+	if err := sqlDB.Ping(); err != nil {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
@@ -28,5 +33,9 @@ func NewDB(dsn string) (*DB, error) {
 
 // Close closes database connection
 func (db *DB) Close() error {
-	return db.DB.Close()
+	sqlDB, err := db.DB.DB()
+	if err != nil {
+		return err
+	}
+	return sqlDB.Close()
 }

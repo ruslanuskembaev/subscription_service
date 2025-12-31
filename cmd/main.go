@@ -13,6 +13,7 @@ import (
 	"subscription_service/internal/config"
 	"subscription_service/internal/database"
 	"subscription_service/internal/handler"
+	"subscription_service/internal/models"
 	"subscription_service/internal/repository"
 	"subscription_service/internal/service"
 
@@ -65,8 +66,8 @@ func main() {
 
 	logger.Info("Connected to database")
 
-	// Run migrations
-	if err := runMigrations(cfg.GetDSN()); err != nil {
+	// Run migrations using GORM AutoMigrate
+	if err := runMigrations(db); err != nil {
 		logger.Fatal("Failed to run migrations", zap.Error(err))
 	}
 	logger.Info("Migrations completed")
@@ -157,34 +158,21 @@ func setupRouter(logger *zap.Logger, subscriptionHandler *handler.SubscriptionHa
 	return router
 }
 
-func runMigrations(dsn string) error {
-	// Simple migration runner - in production you might want to use migrate tool
-	db, err := database.NewDB(dsn)
+func runMigrations(db *database.DB) error {
+	// Create UUID extension
+	sqlDB, err := db.DB.DB()
 	if err != nil {
 		return err
 	}
-	defer db.Close()
+	_, err = sqlDB.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"")
+	if err != nil {
+		return err
+	}
 
-	migrationSQL := `
-		CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+	// AutoMigrate creates tables and indexes based on model tags
+	if err := db.AutoMigrate(&models.Subscription{}); err != nil {
+		return fmt.Errorf("failed to auto migrate: %w", err)
+	}
 
-		CREATE TABLE IF NOT EXISTS subscriptions (
-			id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-			service_name VARCHAR(255) NOT NULL,
-			price INTEGER NOT NULL CHECK (price > 0),
-			user_id UUID NOT NULL,
-			start_date DATE NOT NULL,
-			end_date DATE,
-			created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-		);
-
-		CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id);
-		CREATE INDEX IF NOT EXISTS idx_subscriptions_service_name ON subscriptions(service_name);
-		CREATE INDEX IF NOT EXISTS idx_subscriptions_start_date ON subscriptions(start_date);
-		CREATE INDEX IF NOT EXISTS idx_subscriptions_end_date ON subscriptions(end_date);
-	`
-
-	_, err = db.Exec(migrationSQL)
-	return err
+	return nil
 }
